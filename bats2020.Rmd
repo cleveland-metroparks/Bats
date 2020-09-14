@@ -13,6 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Using R to process files recorded using WildlifeAcoustics SM4BAT-FS recorder (Unit Serial number:  S4U08764) to classify Bat calls.
 
+## Testing bioacoustics package
+
 ```{r bioacoustics}
 # install.packages("bioacoustics")
 library(bioacoustics)
@@ -20,8 +22,8 @@ library(bioacoustics)
 # devtools::install_github("riggsd/guano-r", subdir="guano")
 library(guano)
 
-data_dir = file.path(getwd(), "SCR forest Management")
-S4U08764_20200819_173700 = read_audio(file.path(data_dir, "S4U08764_20200819_173700.wav"))
+data_dir = file.path(getwd(), "../Bats 2020/SCR forest Management")
+S4U08764_20200819_173700 = read_audio(file.path(data_dir, "../Bats 2020/S4U08764_20200819_173700.wav"))
 metadata(S4U08764_20200819_173700)
 
 # returns empty list
@@ -37,15 +39,15 @@ library(readr)
 library(dplyr)
 
 # Change these dirs for other directories
-# data_dir = file.path(getwd(), "Johnson's Creek")
+# data_dir = file.path(getwd(), "../Bats 2020/Johnson's Creek")
 # Kaliedescope_output_dir = file.path(getwd(), 
-#                                     "Johnson's Creek output")
-# data_dir = file.path(getwd(), "SCR forest Management")
+#                                     "../Bats 2020/Johnson's Creek output")
+# data_dir = file.path(getwd(), "../Bats 2020/SCR forest Management")
 # Kaliedescope_output_dir = file.path(getwd(), 
-#                                     "SCR forest Management output")
-data_dir = file.path(getwd(), "Williams")
+#                                     "../Bats 2020/SCR forest Management output")
+data_dir = file.path(getwd(), "../Bats 2020/Williams")
 Kaliedescope_output_dir = file.path(getwd(),
-                                    "Williams output")
+                                    "../Bats 2020/Williams output")
 
 id = read_csv(file.path(Kaliedescope_output_dir, 
                          "id.csv"), 
@@ -103,9 +105,9 @@ for (d in dirs_list){
 # file.remove(copy_from_f)
 
 # summary
-spp_totals1 =spp_totals(dd = file.path(getwd(), "Johnson's Creek"))
-spp_totals2 =spp_totals(dd = file.path(getwd(), "SCR forest Management"))
-spp_totals3 =spp_totals(dd = file.path(getwd(), "Williams"))
+spp_totals1 =spp_totals(dd = file.path(getwd(), "../Bats 2020/Johnson's Creek"))
+spp_totals2 =spp_totals(dd = file.path(getwd(), "../Bats 2020/SCR forest Management"))
+spp_totals3 =spp_totals(dd = file.path(getwd(), "../Bats 2020/Williams"))
 
 spp_sum_site = bind_rows(JohnsonsCreek_2020 = spp_totals1,
                          SCRforestManagement_2020 = spp_totals2,
