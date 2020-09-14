@@ -1,0 +1,116 @@
+---
+title: "bats2020"
+author: "Patrick Lorch"
+date: "9/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Bats 2020
+
+Using R to process files recorded using WildlifeAcoustics SM4BAT-FS recorder (Unit Serial number:  S4U08764) to classify Bat calls.
+
+```{r bioacoustics}
+# install.packages("bioacoustics")
+library(bioacoustics)
+# install.packages("devtools")
+# devtools::install_github("riggsd/guano-r", subdir="guano")
+library(guano)
+
+data_dir = file.path(getwd(), "SCR forest Management")
+S4U08764_20200819_173700 = read_audio(file.path(data_dir, "S4U08764_20200819_173700.wav"))
+metadata(S4U08764_20200819_173700)
+
+# returns empty list
+read.guano(file.path(data_dir, "S4U08764_20200819_173700.wav"))
+```
+
+## Move images to species folders
+
+This will need to be run once per location directory
+
+```{r move}
+library(readr)
+library(dplyr)
+
+# Change these dirs for other directories
+# data_dir = file.path(getwd(), "Johnson's Creek")
+# Kaliedescope_output_dir = file.path(getwd(), 
+#                                     "Johnson's Creek output")
+# data_dir = file.path(getwd(), "SCR forest Management")
+# Kaliedescope_output_dir = file.path(getwd(), 
+#                                     "SCR forest Management output")
+data_dir = file.path(getwd(), "Williams")
+Kaliedescope_output_dir = file.path(getwd(),
+                                    "Williams output")
+
+id = read_csv(file.path(Kaliedescope_output_dir, 
+                         "id.csv"), 
+     col_types = cols(DATE = col_date(format = "%Y-%m-%d"), 
+         `DATE-12` = col_date(format = "%Y-%m-%d"), 
+         `MANUAL ID` = col_character(), ORGID = col_character(), 
+         `REVIEW ORGID` = col_character(), 
+         `REVIEW USERID` = col_character(), 
+         TIME = col_time(format = "%H:%M:%S"), 
+         `TIME-12` = col_time(format = "%H:%M:%S"), 
+         USERID = col_character()))
+
+dirs_to_create = id$`AUTO ID*` %>%
+    unique()
+dirs_to_create = file.path(data_dir,dirs_to_create)
+sapply(dirs_to_create, FUN = dir.create, recursive = TRUE)
+
+files_to_copy = list.files(data_dir, 
+                           pattern = ".wav")
+copy_from_files = id$`IN FILE`[order(id$`IN FILE`)]
+if(all.equal(files_to_copy, copy_from_files)){
+    copy_from_f = file.path(data_dir,
+                                id$`IN FILE`)
+    copy_to_files = file.path(data_dir,
+                              id$`AUTO ID*`,
+                                id$`IN FILE`)
+    file.copy(copy_from_f, copy_to_files)
+
+} else {print("Lists are not equal. Not copying.")}
+table(id$`AUTO ID*`)
+spp_totals = function (dd = data_dir){
+    dirs_list = list.dirs(dd,full.names = F)[-1]
+    dir_counts = sapply(file.path(dd, dirs_list),
+                        FUN = function(x) {
+                            length(list.files(x))
+                            }
+                        )
+    names(dir_counts) = dirs_list
+    dir_counts
+}
+spp_totals()
+
+for (d in dirs_list){
+    id.sub = id[id$`AUTO ID*` == d,]
+    write.csv(id.sub, 
+              file.path(data_dir, 
+                        d,
+                        paste("id",d,"csv",
+                              sep = ".")))
+}
+
+# If the two tables above match, you can run the command below 
+#  to remove original copies, 
+# but BE CAREFUL!
+# file.remove(copy_from_f)
+
+# summary
+spp_totals1 =spp_totals(dd = file.path(getwd(), "Johnson's Creek"))
+spp_totals2 =spp_totals(dd = file.path(getwd(), "SCR forest Management"))
+spp_totals3 =spp_totals(dd = file.path(getwd(), "Williams"))
+
+spp_sum_site = bind_rows(JohnsonsCreek_2020 = spp_totals1,
+                         SCRforestManagement_2020 = spp_totals2,
+                         Williams_2020 = spp_totals3,
+                         .id = "Site")
+write.csv(spp_sum_site,"spp_sum_site.csv")
+```
+
